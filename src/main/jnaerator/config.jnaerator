@@ -1,0 +1,7 @@
+-library jq
+
+-runtime JNA
+
+-package com.github.bskaggs.jjq.jna
+
+$(DIR)/../c/jq.h
