@@ -10,7 +10,6 @@ import com.sun.jna.ptr.PointerByReference;
 
 
 public class JJQ {
-	
 	private final PointerByReference jq;
     private final PointerByReference parser;
     private final ErrorStore errorStore = new ErrorStore();
@@ -71,6 +70,7 @@ public class JJQ {
 	
 	public void finish() throws JJQException {
 		add(new Pointer(-1), 0, true);
+		JqLibrary.INSTANCE.jq_set_error_cb(jq, null, null);
 	}
 	
 	private void process(jv.ByValue value) {

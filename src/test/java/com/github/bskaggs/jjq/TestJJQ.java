@@ -69,4 +69,10 @@ public class TestJJQ {
 	public void testInvalidInput() throws JJQException {
 		assertProgram(".", new String[] { "}" }, null);
 	}
+	
+	@Test
+	public void testAddition() throws JJQException {
+		String[] values = new String[] { "4 ", "5 ", "6" };
+		assertProgram(".+1", values, new String[] { "5", "6", "7" });
+	}
 }
