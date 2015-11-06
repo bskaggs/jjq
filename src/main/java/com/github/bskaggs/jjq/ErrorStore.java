@@ -12,8 +12,8 @@ public class ErrorStore implements JqLibrary.jq_msg_cb {
 
 	@Override
 	public void apply(Pointer store, ByValue jv) {
-		if (JqLibrary.INSTANCE.jv_get_kind(jv) == JqLibrary.jv_kind.JV_KIND_STRING) {
-			String str = JqLibrary.INSTANCE.jv_string_value(jv).getString(0);
+		if (JJQ.INSTANCE.jv_get_kind(jv) == JqLibrary.jv_kind.JV_KIND_STRING) {
+			String str = JJQ.INSTANCE.jv_string_value(jv).getString(0);
 			errors.add(str);
 		}
 	}

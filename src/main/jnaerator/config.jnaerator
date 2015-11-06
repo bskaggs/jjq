@@ -4,4 +4,6 @@
 
 -package com.github.bskaggs.jjq.jna
 
+-skipLibraryInstance
+
 $(DIR)/../c/jq.h

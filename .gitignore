@@ -1,5 +1,7 @@
 .classpath
 .project
 .settings/
+deps/
 target/*
+src/main/resources/lib/
 !target/generated-sources

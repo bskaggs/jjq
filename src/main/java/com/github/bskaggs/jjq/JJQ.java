@@ -5,11 +5,17 @@ import java.nio.charset.StandardCharsets;
 import com.github.bskaggs.jjq.jna.JqLibrary;
 import com.github.bskaggs.jjq.jna.jv;
 import com.sun.jna.Memory;
+import com.sun.jna.Native;
+import com.sun.jna.NativeLibrary;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.PointerByReference;
 
 
 public class JJQ {
+	public static final NativeLibrary ONIG_NATIVE_LIB = NativeLoader.loadLibrary("onig");
+	public static final NativeLibrary JQ_NATIVE_LIB = NativeLoader.loadLibrary("jq");
+	public static final JqLibrary INSTANCE = (JqLibrary)Native.loadLibrary(JQ_NATIVE_LIB.getName(), JqLibrary.class);
+	
 	private final PointerByReference jq;
     private final PointerByReference parser;
     private final ErrorStore errorStore = new ErrorStore();
@@ -20,14 +26,14 @@ public class JJQ {
 	public JJQ(String program, JJQConsumer consumer) throws JJQException{
 		this.program = program;
 		this.consumer = consumer;
-    	jq = JqLibrary.INSTANCE.jq_init();
+    	jq = INSTANCE.jq_init();
     	if (jq == null) {
     		throw new JJQException("Error initializing jq");
     	}
     	
-    	JqLibrary.INSTANCE.jq_set_error_cb(jq, errorStore, new Pointer(0));
+    	INSTANCE.jq_set_error_cb(jq, errorStore, new Pointer(0));
         
-        int compiled = JqLibrary.INSTANCE.jq_compile(jq, program);
+        int compiled = INSTANCE.jq_compile(jq, program);
         
         if (!errorStore.getErrors().isEmpty()) {
         	throw new JJQCompilationException(errorStore.getErrors().toString());
@@ -36,11 +42,11 @@ public class JJQ {
         	throw new JJQCompilationException("Program was not valid");
         }
         
-        parser = JqLibrary.INSTANCE.jv_parser_new(0);
+        parser = INSTANCE.jv_parser_new(0);
     }
 	
 	private boolean jv_is_valid(jv.ByValue v) {
-		return JqLibrary.INSTANCE.jv_get_kind(v) != JqLibrary.jv_kind.JV_KIND_INVALID;
+		return INSTANCE.jv_get_kind(v) != JqLibrary.jv_kind.JV_KIND_INVALID;
 	}
 	
 	public void add(String string) throws JJQException {
@@ -54,10 +60,10 @@ public class JJQ {
 	}
 	
 	public void add(Pointer pointer, int length, boolean finished) throws JJQException {
-		JqLibrary.INSTANCE.jv_parser_set_buf(parser, pointer, length, finished ? 0 : 1);
+		INSTANCE.jv_parser_set_buf(parser, pointer, length, finished ? 0 : 1);
 		jv.ByValue value;
 		
-		while (jv_is_valid(value = JqLibrary.INSTANCE.jv_parser_next(parser))) {
+		while (jv_is_valid(value = INSTANCE.jv_parser_next(parser))) {
 			process(value);
 		}
 		
@@ -70,17 +76,17 @@ public class JJQ {
 	
 	public void finish() throws JJQException {
 		add(new Pointer(-1), 0, true);
-		JqLibrary.INSTANCE.jq_set_error_cb(jq, null, null);
+		INSTANCE.jq_set_error_cb(jq, null, null);
 	}
 	
 	private void process(jv.ByValue value) {
-		JqLibrary.INSTANCE.jq_start(jq, value, 0);
+		INSTANCE.jq_start(jq, value, 0);
 		jv.ByValue result;
 		
-		while (jv_is_valid(result = JqLibrary.INSTANCE.jq_next(jq))) {
-			jv.ByValue dumped = JqLibrary.INSTANCE.jv_dump_string(result, dumpFormat);
-			String str = JqLibrary.INSTANCE.jv_string_value(dumped).getString(0, StandardCharsets.UTF_8.name());
-			JqLibrary.INSTANCE.jv_free(dumped);
+		while (jv_is_valid(result = INSTANCE.jq_next(jq))) {
+			jv.ByValue dumped = INSTANCE.jv_dump_string(result, dumpFormat);
+			String str = INSTANCE.jv_string_value(dumped).getString(0, StandardCharsets.UTF_8.name());
+			INSTANCE.jv_free(dumped);
 			consumer.accept(str);
 		}
 		handleInvalid(result, "");
@@ -88,26 +94,26 @@ public class JJQ {
 	
 	private void handleInvalid(jv.ByValue value, String prefix) {
 
-		int hasMessage = JqLibrary.INSTANCE.jv_invalid_has_msg(JqLibrary.INSTANCE.jv_copy(value));
+		int hasMessage = INSTANCE.jv_invalid_has_msg(INSTANCE.jv_copy(value));
 		
 		if (hasMessage != 0) {
-			jv.ByValue message = JqLibrary.INSTANCE.jv_invalid_get_msg(value);
+			jv.ByValue message = INSTANCE.jv_invalid_get_msg(value);
 
-			errorStore.getErrors().add(prefix + JqLibrary.INSTANCE.jv_string_value(message).getString(0, StandardCharsets.UTF_8.name()));
-			JqLibrary.INSTANCE.jv_free(message);
+			errorStore.getErrors().add(prefix + INSTANCE.jv_string_value(message).getString(0, StandardCharsets.UTF_8.name()));
+			INSTANCE.jv_free(message);
 		} else {
-			JqLibrary.INSTANCE.jv_free(value);
+			INSTANCE.jv_free(value);
 		}
 	}
 		
 	@Override
     protected void finalize() throws Throwable {
 		if (parser != null) {
-			JqLibrary.INSTANCE.jv_parser_free(parser);
+			INSTANCE.jv_parser_free(parser);
 		}
     	if (jq != null) {
-    		JqLibrary.INSTANCE.jq_set_error_cb(jq, null, null);
-    		JqLibrary.INSTANCE.jq_teardown(jq);
+    		INSTANCE.jq_set_error_cb(jq, null, null);
+    		INSTANCE.jq_teardown(jq);
     	}
     	super.finalize();
     }
@@ -119,6 +125,5 @@ public class JJQ {
     @Override
     public String toString() {
     	return "JJQ<" + program + ">";
-    }
-    
+    }   
 }

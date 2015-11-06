@@ -2,8 +2,6 @@ package com.github.bskaggs.jjq.jna;
 import com.github.bskaggs.jjq.jna.jv.ByValue;
 import com.sun.jna.Callback;
 import com.sun.jna.Library;
-import com.sun.jna.Native;
-import com.sun.jna.NativeLibrary;
 import com.sun.jna.Pointer;
 import com.sun.jna.PointerType;
 import com.sun.jna.ptr.PointerByReference;
@@ -14,9 +12,6 @@ import com.sun.jna.ptr.PointerByReference;
  * For help, please visit <a href="http://nativelibs4java.googlecode.com/">NativeLibs4Java</a> , <a href="http://rococoa.dev.java.net/">Rococoa</a>, or <a href="http://jna.dev.java.net/">JNA</a>.
  */
 public interface JqLibrary extends Library {
-	public static final String JNA_LIBRARY_NAME = "jq";
-	public static final NativeLibrary JNA_NATIVE_LIB = NativeLibrary.getInstance(JqLibrary.JNA_LIBRARY_NAME);
-	public static final JqLibrary INSTANCE = (JqLibrary)Native.loadLibrary(JqLibrary.JNA_LIBRARY_NAME, JqLibrary.class);
 	/**
 	 * <i>native declaration : src/main/c/jq.h</i><br>
 	 * enum values
