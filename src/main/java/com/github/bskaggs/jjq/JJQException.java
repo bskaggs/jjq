@@ -8,4 +8,7 @@ public class JJQException extends Exception {
 		super(msg);
 	}
 
+	public JJQException(Throwable e) {
+		super(e);
+	}
 }

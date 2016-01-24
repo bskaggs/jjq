@@ -1,5 +1,6 @@
 package com.github.bskaggs.jjq;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import com.github.bskaggs.jjq.jna.JqLibrary;
@@ -79,7 +80,7 @@ public class JJQ {
 		INSTANCE.jq_set_error_cb(jq, null, null);
 	}
 	
-	private void process(jv.ByValue value) {
+	private void process(jv.ByValue value) throws JJQException {
 		INSTANCE.jq_start(jq, value, 0);
 		jv.ByValue result;
 		
@@ -87,7 +88,11 @@ public class JJQ {
 			jv.ByValue dumped = INSTANCE.jv_dump_string(result, dumpFormat);
 			String str = INSTANCE.jv_string_value(dumped).getString(0, StandardCharsets.UTF_8.name());
 			INSTANCE.jv_free(dumped);
-			consumer.accept(str);
+			try {
+				consumer.accept(str);
+			} catch (IOException e) {
+				throw new JJQException(e);
+			}
 		}
 		handleInvalid(result, "");
 	}
