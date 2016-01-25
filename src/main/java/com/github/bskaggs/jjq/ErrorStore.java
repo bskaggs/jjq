@@ -17,6 +17,7 @@ public class ErrorStore implements JqLibrary.jq_msg_cb {
 			errors.add(str);
 		}
 	}
+
 	public List<String> getErrors() {
 		return errors;
 	}
