@@ -28,5 +28,4 @@ target/jjq-$(JJQ_VERSION)-SNAPSHOT.jar: src/main/resources/lib/
 	mvn package
 
 clean:
-	mvn clean
-	rm -rf deps src/main/resources/lib
+	rm -rf deps src/main/resources/lib target
