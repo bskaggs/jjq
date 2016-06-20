@@ -1,24 +1,28 @@
 JJQ_VERSION=0.0.1
+ONIGURUMA_VERSION=5.9.6
+JQ_VERSION=1.5
 PLATFORM=$$(echo -n $$(uname)-$$(uname -m) | tr "[A-Z]" "[a-z]")
 
-.PHONY: fetch
+.PHONY: fetch install build clen
 
-build: target/jjq-0.0.1-SNAPSHOT.jar
+build: target/jjq-$(JJQ_VERSION)-SNAPSHOT.jar
+	
+install: build
+	mvn install	
 
+fetch: deps/onig-$(ONIGURUMA_VERSION).tar.gz deps/jq-$(JQ_VERSION).tar.gz
 
-fetch: deps/onig-5.9.6.tar.gz deps/jq-1.5.tar.gz
+deps/onig-$(ONIGURUMA_VERSION).tar.gz:
+	mkdir -p deps && cd deps && wget https://github.com/kkos/oniguruma/releases/download/v$(ONIGURUMA_VERSION)/onig-$(ONIGURUMA_VERSION).tar.gz
 
-deps/onig-5.9.6.tar.gz:
-	mkdir -p deps && cd deps && wget https://github.com/kkos/oniguruma/releases/download/v5.9.6/onig-5.9.6.tar.gz
+deps/jq-$(JQ_VERSION).tar.gz:
+	mkdir -p deps && cd deps && wget https://github.com/stedolan/jq/releases/download/jq-$(JQ_VERSION)/jq-$(JQ_VERSION).tar.gz
 
-deps/jq-1.5.tar.gz:
-	mkdir -p deps && cd deps && wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-1.5.tar.gz
+deps/lib/libonig.so: deps/onig-$(ONIGURUMA_VERSION).tar.gz
+	cd deps && tar xvf onig-$(ONIGURUMA_VERSION).tar.gz && cd onig-$(ONIGURUMA_VERSION) && ./configure --prefix $$(cd .. && pwd -P) && make && make install
 
-deps/lib/libonig.so: deps/onig-5.9.6.tar.gz
-	cd deps && tar xvf onig-5.9.6.tar.gz && cd onig-5.9.6 && ./configure --prefix $$(cd .. && pwd -P) && make && make install
-
-deps/lib/libjq.so: deps/jq-1.5.tar.gz deps/lib/libonig.so
-	cd deps && tar xvf jq-1.5.tar.gz && cd jq-1.5 && ./configure --prefix $$(cd .. && pwd -P) --with-oniguruma=$$(cd .. && pwd -P) && make && make install
+deps/lib/libjq.so: deps/jq-$(JQ_VERSION).tar.gz deps/lib/libonig.so
+	cd deps && tar xvf jq-$(JQ_VERSION).tar.gz && cd jq-$(JQ_VERSION) && ./configure --prefix $$(cd .. && pwd -P) --with-oniguruma=$$(cd .. && pwd -P) && make && make install
 
 src/main/resources/lib/: deps/lib/libjq.so deps/lib/libonig.so
 	mkdir -p src/main/resources/lib/$(PLATFORM)

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -36,18 +37,30 @@ public class TestJJQ {
 		});
 		for (String value : input) {
 			jq.add(value);
+			assertEquals(false, jq.isFinished());
 		}
 		jq.finish();
+		assertEquals(true, jq.isFinished());
 		assertEquals(Arrays.asList(expectedOutput), collector);
 	}
-	@SuppressWarnings("unused")
+
+	private String loadText(String path) {
+		Scanner scanner = new Scanner(getClass().getClassLoader().getResourceAsStream(path), "UTF-8");
+		StringBuilder builder = new StringBuilder();
+		while(scanner.hasNext()) {
+			builder.append(scanner.nextLine());
+		}
+
+		scanner.close();
+		return builder.toString();
+	}
+	
 	@Test
 	public void testValidCompilation() throws JJQException {
-		JJQ jq1 = newWithPrinter(".");
-		JJQ jq2 = newWithPrinter(".text");
-		JJQ jq3 = newWithPrinter(".text | .[] | {foo: .bar}");
+		newWithPrinter(".");
+		newWithPrinter(".text");
+		newWithPrinter(".text | .[] | {foo: .bar}");
 	}
-
 	
 	@Test (expected = JJQCompilationException.class)
 	public void testInvalidProgram() throws JJQException {
@@ -72,7 +85,23 @@ public class TestJJQ {
 	
 	@Test
 	public void testAddition() throws JJQException {
-		String[] values = new String[] { "4 ", "5 ", "6" };
+		String[] values = new String[] { "4 5 6" };
 		assertProgram(".+1", values, new String[] { "5", "6", "7" });
+	}
+
+	@Test
+	public void testMultipleParts() throws JJQException {
+		String[] values = new String[] { "4 5 6", "7" };
+		assertProgram(".+1", values, new String[] { "5", "6", "68" });
+	}
+	
+	@Test
+	public void testObject() throws JJQException {
+		String person = loadText("person.json");
+		assertProgram(".isAlive", new String[] { person }, new String[] { "true" } );
+		assertProgram(".age", new String[] { person }, new String[] { "25" } );
+		assertProgram(".firstName", new String[] { person }, new String[] { "\"John\"" } );
+		assertProgram(".firstName + \" \" + .lastName", new String[] { person }, new String[] { "\"John Smith\"" } );
+
 	}
 }

@@ -8,7 +8,14 @@ import java.io.OutputStream;
 
 import com.sun.jna.NativeLibrary;
 
-//Based on http://stackoverflow.com/a/12040310/4012405
+/**
+ * NativeLoader is a way to load dynamically-linked libraries that are stored in a jar file.
+ * It is based on http://stackoverflow.com/a/12040310/4012405
+ * 
+ * @author bskaggs
+ *
+ */
+
 public class NativeLoader {
 	public static NativeLibrary loadLibrary(String library) {
 		try {
